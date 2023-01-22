@@ -42,6 +42,9 @@ type GetAddressResult = Omit<Address, "createdAt" | "updatedAt" | "enrollmentId"
 
 async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
   const enrollment = exclude(params, "address");
+  const userAddress = await request.get(`https://viacep.com.br/ws/${params.address.cep}/json/`);
+
+  if (userAddress.data.erro) throw notFoundError();
   const address = getAddressForUpsert(params.address);
 
   //TODO - Verificar se o CEP é válido
