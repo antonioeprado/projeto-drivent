@@ -1,4 +1,4 @@
-import { getAllTickets, getTicketTypes, postTicket } from "@/controllers/tickets-controllers";
+import { getAllTickets, getTicketTypes, postTicket } from "@/controllers";
 import { authenticateToken, validateBody } from "@/middlewares";
 import { ticketCreationSchema } from "@/schemas/tickets-schemas";
 import { Router } from "express";
