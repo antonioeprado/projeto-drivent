@@ -17,7 +17,6 @@ export async function getTicketsFromUser(userId: number) {
 }
 
 export async function insertTicket(typeId: number, userId: number) {
-  if (!typeId) throw new Error();
   const enrollment = await findEnrollment(userId);
   if (!enrollment) throw userNotEnrolled();
   return await createUserTicket(typeId, userId);

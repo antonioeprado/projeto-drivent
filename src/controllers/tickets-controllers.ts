@@ -32,7 +32,6 @@ export async function postTicket(req: AuthenticatedRequest, res: Response) {
     if (error.name === "UserNotEnrolled") {
       res.status(404).send(error.message);
     }
-    res.sendStatus(httpStatus.BAD_REQUEST);
   }
 }
 
