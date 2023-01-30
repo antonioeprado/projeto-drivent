@@ -1,5 +1,12 @@
 import { userNotEnrolled } from "@/errors/user-not-enrolled";
-import { createUserTicket, findEnrollment, findTypes, findUserTickets } from "@/repositories/tickets-repository";
+import { wrongTicketId } from "@/errors/wrongTicketId";
+import {
+  createUserTicket,
+  findEnrollment,
+  findTicket,
+  findTypes,
+  findUserTickets,
+} from "@/repositories/tickets-repository";
 import { TicketType } from "@prisma/client";
 
 export async function getTypes(): Promise<TicketType[]> {
@@ -14,6 +21,11 @@ export async function getTicketsFromUser(userId: number) {
     throw new Error();
   }
   return userTickets;
+}
+
+export async function getTicketsById(ticketId: number) {
+  const ticket = await findTicket(ticketId);
+  if (!ticket) throw wrongTicketId();
 }
 
 export async function insertTicket(typeId: number, userId: number) {
