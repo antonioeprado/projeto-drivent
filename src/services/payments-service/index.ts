@@ -1,47 +1,62 @@
-import { notUserTicket } from "@/errors/notUserTicket";
-import { wrongTicketId } from "@/errors/wrongTicketId";
-import { PaymentInfoType, PaymentRequestInput } from "@/protocols";
-import {
-  createTicketPayment,
-  findPaymentByTicketId,
-  getTicketValue,
-  updateTicketStatus,
-} from "@/repositories/payments-repository";
-import { findUserTickets } from "@/repositories/tickets-repository";
-import { getTicketsById } from "../tickets-service";
+import { notFoundError, unauthorizedError } from "@/errors";
+import paymentRepository, { PaymentParams } from "@/repositories/payment-repository";
+import ticketRepository from "@/repositories/ticket-repository";
+import enrollmentRepository from "@/repositories/enrollment-repository";
 
-export async function getPaymentsWithTicketId(ticketId: number, userId: number) {
-  const payment = await findPaymentByTicketId(ticketId);
-  if (!payment) {
-    throw wrongTicketId();
+async function verifyTicketAndEnrollment(ticketId: number, userId: number) {
+  const ticket = await ticketRepository.findTickeyById(ticketId);
+
+  if (!ticket) {
+    throw notFoundError();
   }
-  await verifyIfOwner(userId, ticketId);
+  const enrollment = await enrollmentRepository.findById(ticket.enrollmentId);
+
+  if (enrollment.userId !== userId) {
+    throw unauthorizedError();
+  }
+}
+
+async function getPaymentByTicketId(userId: number, ticketId: number) {
+  await verifyTicketAndEnrollment(ticketId, userId);
+
+  const payment = await paymentRepository.findPaymentByTicketId(ticketId);
+
+  if (!payment) {
+    throw notFoundError();
+  }
   return payment;
 }
 
-export async function paymentProcessing(paymentInput: PaymentRequestInput, userId: number) {
-  await getTicketsById(paymentInput.ticketId);
-  await verifyIfOwner(userId, paymentInput.ticketId);
+async function paymentProcess(ticketId: number, userId: number, cardData: CardPaymentParams) {
+  await verifyTicketAndEnrollment(ticketId, userId);
 
-  const { TicketType } = await getTicketValue(paymentInput.ticketId);
-  const paymentInfo: PaymentInfoType = {
-    ticketId: paymentInput.ticketId,
-    value: TicketType.price,
-    cardIssuer: paymentInput.cardData.issuer,
-    cardLastDigits: paymentInput.cardData.number.toString().slice(13),
+  const ticket = await ticketRepository.findTickeWithTypeById(ticketId);
+
+  const paymentData = {
+    ticketId,
+    value: ticket.TicketType.price,
+    cardIssuer: cardData.issuer,
+    cardLastDigits: cardData.number.toString().slice(-4),
   };
 
-  const paidTicket = await createTicketPayment(paymentInfo);
-  if (paidTicket) {
-    await updateTicketStatus(paymentInput.ticketId);
+  const payment = await paymentRepository.createPayment(ticketId, paymentData);
 
-    return paidTicket;
-  }
+  await ticketRepository.ticketProcessPayment(ticketId);
+
+  return payment;
 }
 
-async function verifyIfOwner(userId: number, ticketId: number) {
-  const userTickets = await findUserTickets(userId);
-  if (!userTickets || userTickets.id !== ticketId) {
-    throw notUserTicket();
-  }
-}
+export type CardPaymentParams = {
+  issuer: string;
+  number: number;
+  name: string;
+  expirationDate: Date;
+  cvv: number;
+};
+
+const paymentService = {
+  getPaymentByTicketId,
+  paymentProcess,
+};
+
+export default paymentService;

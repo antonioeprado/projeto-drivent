@@ -1,35 +1,53 @@
-import { userNotEnrolled } from "@/errors/user-not-enrolled";
-import { wrongTicketId } from "@/errors/wrongTicketId";
-import {
-  createUserTicket,
-  findEnrollment,
-  findTicket,
-  findTypes,
-  findUserTickets,
-} from "@/repositories/tickets-repository";
-import { TicketType } from "@prisma/client";
+import { notFoundError } from "@/errors";
+import ticketRepository from "@/repositories/ticket-repository";
+import enrollmentRepository from "@/repositories/enrollment-repository";
+import { TicketStatus } from "@prisma/client";
 
-export async function getTypes(): Promise<TicketType[]> {
-  const types = await findTypes();
-  if (!types) throw new Error("Cannot connect to database");
-  return types;
-}
+async function getTicketTypes() {
+  const ticketTypes = await ticketRepository.findTicketTypes();
 
-export async function getTicketsFromUser(userId: number) {
-  const userTickets = await findUserTickets(userId);
-  if (!userTickets) {
-    throw new Error();
+  if (!ticketTypes) {
+    throw notFoundError();
   }
-  return userTickets;
+  return ticketTypes;
 }
 
-export async function getTicketsById(ticketId: number) {
-  const ticket = await findTicket(ticketId);
-  if (!ticket) throw wrongTicketId();
+async function getTicketByUserId(userId: number) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if (!enrollment) {
+    throw notFoundError();
+  }
+  const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+  if (!ticket) {
+    throw notFoundError();
+  }
+
+  return ticket;
 }
 
-export async function insertTicket(typeId: number, userId: number) {
-  const enrollment = await findEnrollment(userId);
-  if (!enrollment) throw userNotEnrolled();
-  return await createUserTicket(typeId, userId);
+async function createTicket(userId: number, ticketTypeId: number) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if (!enrollment) {
+    throw notFoundError();
+  }
+
+  const ticketData = {
+    ticketTypeId,
+    enrollmentId: enrollment.id,
+    status: TicketStatus.RESERVED,
+  };
+
+  await ticketRepository.createTicket(ticketData);
+
+  const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+
+  return ticket;
 }
+
+const ticketService = {
+  getTicketTypes,
+  getTicketByUserId,
+  createTicket,
+};
+
+export default ticketService;
