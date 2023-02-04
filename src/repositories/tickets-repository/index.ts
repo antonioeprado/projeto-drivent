@@ -5,7 +5,7 @@ export function findTypes(): PrismaPromise<TicketType[]> {
   return prisma.ticketType.findMany();
 }
 
-export function findUserTickets(userId: number): PrismaPromise<Ticket> {
+export function findUserTickets(userId: number): PrismaPromise<Ticket & { TicketType: TicketType }> {
   return prisma.ticket.findFirst({ where: { Enrollment: { userId } }, include: { TicketType: true } });
 }
 
