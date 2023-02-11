@@ -1,6 +1,6 @@
 import { notFoundError } from "@/errors";
 import { forbiddenError } from "@/errors/forbiddenError";
-import { createBooking, findBooking, findRoom, findTicketInfo } from "@/repositories/bookings-repository";
+import { createBooking, findBooking, findRoom, findTicketInfo, updateRoom } from "@/repositories/bookings-repository";
 import { Booking, Room } from "@prisma/client";
 
 export async function bookRoom(userId: number, roomId: number): Promise<Booking> {
@@ -14,6 +14,14 @@ export async function findUserBookings(userId: number): Promise<Pick<Booking, "i
   const booking = await findBooking(userId);
   if (!booking) throw notFoundError();
   return booking;
+}
+
+export async function changeHotelRooms(userId: number, bookingId: number, roomId: number): Promise<Booking> {
+  await verifyUser(userId);
+  await verifyRoom(roomId);
+  await findUserBookings(userId);
+  const newBookedRoom = await updateRoom(bookingId, roomId);
+  return newBookedRoom;
 }
 
 async function verifyRoom(roomId: number) {
