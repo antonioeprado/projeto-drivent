@@ -25,6 +25,10 @@ export function findTicketInfo(userId: number): PrismaPromise<TicketInfoReturnTy
   });
 }
 
+export function updateRoom(bookingId: number, roomId: number): PrismaPromise<Booking> {
+  return prisma.booking.update({ where: { id: bookingId }, data: { roomId } });
+}
+
 type TicketInfoReturnType = {
   TicketType: Pick<TicketType, "isRemote" | "includesHotel">;
   status: TicketStatus;
