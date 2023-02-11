@@ -6,7 +6,7 @@ export function createMultipleRooms() {
   for (let i = 0; i < 5; i++) {
     roomsArr.push({
       name: faker.name.findName(),
-      capacity: faker.datatype.number({ min: 0, max: 3 }),
+      capacity: faker.datatype.number({ min: 1, max: 3 }),
     });
   }
   return roomsArr;
