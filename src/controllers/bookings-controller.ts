@@ -9,11 +9,7 @@ export async function getBookings(req: AuthenticatedRequest, res: Response) {
     const userBookings = await findUserBookings(userId);
     res.status(httpStatus.OK).send(userBookings);
   } catch (error) {
-    if (error.name === "NotFoundError") {
-      return res.status(httpStatus.NOT_FOUND).send(error.message);
-    } else if (error.name === "ForbiddenError") {
-      return res.status(httpStatus.FORBIDDEN).send(error.message);
-    }
+    res.status(httpStatus.NOT_FOUND).send(error.message);
   }
 }
 
