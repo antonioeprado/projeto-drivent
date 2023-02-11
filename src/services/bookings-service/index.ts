@@ -27,13 +27,13 @@ export async function changeHotelRooms(userId: number, bookingId: number, roomId
 async function verifyRoom(roomId: number) {
   const isValid = await findRoom(roomId);
   if (!isValid) throw notFoundError();
-  if (isValid.capacity === 0) throw forbiddenError("Room already fully booked");
+  if (isValid.capacity === 0) throw forbiddenError();
 }
 
 async function verifyUser(userId: number) {
   const isValid = (await findTicketInfo(userId)).pop();
-  if (!isValid) throw forbiddenError("Forbidden!");
-  if (isValid.status !== "PAID") throw forbiddenError("Your ticket wasn't paid!");
-  if (!isValid.TicketType.includesHotel) throw forbiddenError("Your ticket doesn't include hotels!");
-  if (isValid.TicketType.isRemote) throw forbiddenError("Your ticket is remote!");
+  if (!isValid) throw forbiddenError();
+  if (isValid.status !== "PAID" || !isValid.TicketType.includesHotel || isValid.TicketType.isRemote) {
+    throw forbiddenError();
+  }
 }
