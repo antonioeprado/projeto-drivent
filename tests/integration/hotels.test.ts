@@ -158,9 +158,9 @@ describe("GET /hotels/:id", () => {
     const enrollment = await createEnrollmentWithAddress(user);
     const ticketType = await createTicketType(false, true);
     await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-    await createHotel();
+    const hotel = await createHotel();
 
-    const response = await server.get("/hotels/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.get(`/hotels/${hotel.id}`).set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.OK);
     expect(response.body).toEqual<Hotel & { Rooms: Room[] }>(
@@ -173,7 +173,7 @@ describe("GET /hotels/:id", () => {
             id: expect.any(Number),
             name: expect.any(String),
             capacity: expect.any(Number),
-            hotelId: 1,
+            hotelId: hotel.id,
             createdAt: expect.any(String),
             updatedAt: expect.any(String),
           }),
