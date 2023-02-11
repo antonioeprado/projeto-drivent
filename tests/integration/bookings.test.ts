@@ -238,7 +238,7 @@ describe("PUT /booking/:bookingId", () => {
     expect(response.status).toBe(httpStatus.NOT_FOUND);
   });
 
-  it("should respond with status 404 when roomId doesn't exist", async () => {
+  it("should respond with status 200 and bookingId", async () => {
     const user = await createUser();
     const token = await generateValidToken(user);
     const enrollment = await createEnrollmentWithAddress(user);
@@ -249,7 +249,7 @@ describe("PUT /booking/:bookingId", () => {
     const booking = await createBooking(user.id, hotel.Rooms[0].id);
 
     const reserve = {
-      roomId: 2,
+      roomId: hotel.Rooms[2].id,
     };
 
     const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send(reserve);
