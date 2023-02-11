@@ -10,6 +10,10 @@ export function createBooking(userId: number, roomId: number): PrismaPromise<Boo
   });
 }
 
+export function findBooking(userId: number): PrismaPromise<Pick<Booking, "id"> & { Room: Room }> {
+  return prisma.booking.findFirst({ select: { id: true, Room: true }, where: { userId } });
+}
+
 export function findRoom(roomId: number): PrismaPromise<Room> {
   return prisma.room.findFirst({ where: { id: roomId } });
 }
